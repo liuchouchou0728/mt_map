@@ -25,7 +25,7 @@ dependencies:
 
 ## 快速开始
 
-### 1. 使用地图容器Widget（推荐）
+### 使用地图容器Widget
 
 ```dart
 import 'package:mt_map/mt_map.dart';
@@ -47,21 +47,7 @@ MtMapWidget(
 )
 ```
 
-### 2. 手动初始化（仅用于基础API）
 
-```dart
-import 'package:mt_map/mt_map.dart';
-
-// 如果使用基础API，需要手动初始化
-await MtMap.initialize('your_meituan_map_api_key_here');
-
-// 然后使用基础API
-await MtMap.showMap(
-  latitude: 39.9042,
-  longitude: 116.4074,
-  zoom: 15.0,
-);
-```
 
 ### 3. 添加标记点
 
@@ -243,17 +229,19 @@ class MtMapWidgetCallbacks {
 }
 ```
 
-## 原生API
+## 原生API（已弃用）
 
-除了Widget接口，插件还提供了原生API用于更细粒度的控制：
+除了Widget接口，插件还提供了原生API用于更细粒度的控制（已弃用，建议使用MtMapWidget）：
 
 ### 基础功能
 
 ```dart
-// 初始化（仅在使用基础API时需要）
+// 初始化（已弃用，建议使用MtMapWidget）
+@deprecated
 await MtMap.initialize('your_api_key');
 
-// 显示地图
+// 显示地图（已弃用，建议使用MtMapWidget）
+@deprecated
 await MtMap.showMap(
   latitude: 39.9042,
   longitude: 116.4074,

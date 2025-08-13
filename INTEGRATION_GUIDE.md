@@ -170,7 +170,7 @@ class MapScreen extends StatelessWidget {
 }
 ```
 
-### 2. 手动初始化（仅用于基础API）
+### 2. 手动初始化（已弃用）
 
 ```dart
 import 'package:mt_map/mt_map.dart';
@@ -178,13 +178,13 @@ import 'package:mt_map/mt_map.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 如果使用基础API，需要手动初始化
+  // 注意：这种方式已弃用，建议使用MtMapWidget
   await MtMap.initialize('your_meituan_map_api_key_here');
   
   runApp(MyApp());
 }
 
-// 然后使用基础API
+// 然后使用基础API（已弃用）
 await MtMap.showMap(
   latitude: 39.9042,
   longitude: 116.4074,

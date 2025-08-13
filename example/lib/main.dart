@@ -112,17 +112,7 @@ class _MyAppState extends State<MyApp> {
                     child: const Text('完整功能示例'),
                   ),
                   const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const BasicExample(),
-                        ),
-                      );
-                    },
-                    child: const Text('基础API示例'),
-                  ),
+
                 ],
               ),
             ),

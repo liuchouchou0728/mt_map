@@ -17,11 +17,13 @@ class MtMap {
   /// Initialize the Meituan Map SDK
   /// Note: This method is now automatically called by MtMapWidget
   /// You don't need to call this manually when using MtMapWidget
+  /// @deprecated Use MtMapWidget instead
   static Future<bool> initialize(String apiKey) {
     return _platform.initialize(apiKey);
   }
 
   /// Show map with specified location
+  /// @deprecated Use MtMapWidget instead
   static Future<bool> showMap({
     required double latitude,
     required double longitude,
