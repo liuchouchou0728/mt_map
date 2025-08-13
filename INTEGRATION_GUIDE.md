@@ -137,24 +137,11 @@ pod install
 
 ## 基本使用
 
-### 1. 初始化插件
+### 1. 使用地图容器Widget（推荐方式）
 
 ```dart
 import 'package:mt_map/mt_map.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // 初始化美团地图SDK
-  await MtMap.initialize('your_meituan_map_api_key_here');
-  
-  runApp(MyApp());
-}
-```
-
-### 2. 使用地图容器Widget
-
-```dart
 class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -162,7 +149,7 @@ class MapScreen extends StatelessWidget {
       appBar: AppBar(title: Text('美团地图')),
       body: MtMapWidget(
         params: MtMapWidgetParams(
-          apiKey: 'your_meituan_map_api_key_here',
+          apiKey: 'your_meituan_map_api_key_here', // 在这里提供API密钥
           initialPosition: MtMapPosition(
             latitude: 39.9042,
             longitude: 116.4074,
@@ -181,6 +168,28 @@ class MapScreen extends StatelessWidget {
     );
   }
 }
+```
+
+### 2. 手动初始化（仅用于基础API）
+
+```dart
+import 'package:mt_map/mt_map.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // 如果使用基础API，需要手动初始化
+  await MtMap.initialize('your_meituan_map_api_key_here');
+  
+  runApp(MyApp());
+}
+
+// 然后使用基础API
+await MtMap.showMap(
+  latitude: 39.9042,
+  longitude: 116.4074,
+  zoom: 15.0,
+);
 ```
 
 ### 3. 添加标记点

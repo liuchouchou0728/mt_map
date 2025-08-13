@@ -25,62 +25,42 @@ dependencies:
 
 ## 快速开始
 
-### 1. 初始化插件
+### 1. 使用地图容器Widget（推荐）
 
 ```dart
 import 'package:mt_map/mt_map.dart';
 
-// 初始化美团地图SDK
-await MtMap.initialize('your_meituan_map_api_key_here');
+// 地图容器会自动处理初始化，无需手动调用initialize
+MtMapWidget(
+  params: MtMapWidgetParams(
+    apiKey: 'your_meituan_map_api_key_here', // 在这里提供API密钥
+    initialPosition: MtMapPosition(
+      latitude: 39.9042,
+      longitude: 116.4074,
+      zoom: 15.0,
+    ),
+  ),
+  callbacks: MtMapWidgetCallbacks(
+    onMapReady: () => print('地图准备完成'),
+    onMapError: (error) => print('地图错误: $error'),
+  ),
+)
 ```
 
-### 2. 使用地图容器Widget
+### 2. 手动初始化（仅用于基础API）
 
 ```dart
 import 'package:mt_map/mt_map.dart';
 
-class MapScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('美团地图')),
-      body: MtMapWidget(
-        params: MtMapWidgetParams(
-          apiKey: 'your_meituan_map_api_key_here',
-          initialPosition: MtMapPosition(
-            latitude: 39.9042,
-            longitude: 116.4074,
-            zoom: 15.0,
-          ),
-          initialMarkers: [
-            MtMapMarker(
-              latitude: 39.9042,
-              longitude: 116.4074,
-              title: '天安门',
-              snippet: '中国北京市东城区天安门广场',
-            ),
-          ],
-        ),
-        style: MtMapStyle(
-          showTraffic: true,
-          showBuildings: true,
-          mapType: 'normal',
-        ),
-        callbacks: MtMapWidgetCallbacks(
-          onMapReady: () {
-            print('地图准备完成');
-          },
-          onMapClick: (latitude, longitude) {
-            print('地图点击: $latitude, $longitude');
-          },
-          onMarkerClick: (marker) {
-            print('标记点击: ${marker.title}');
-          },
-        ),
-      ),
-    );
-  }
-}
+// 如果使用基础API，需要手动初始化
+await MtMap.initialize('your_meituan_map_api_key_here');
+
+// 然后使用基础API
+await MtMap.showMap(
+  latitude: 39.9042,
+  longitude: 116.4074,
+  zoom: 15.0,
+);
 ```
 
 ### 3. 添加标记点
@@ -270,7 +250,7 @@ class MtMapWidgetCallbacks {
 ### 基础功能
 
 ```dart
-// 初始化
+// 初始化（仅在使用基础API时需要）
 await MtMap.initialize('your_api_key');
 
 // 显示地图

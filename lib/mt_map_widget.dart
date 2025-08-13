@@ -45,8 +45,8 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   @override
   void initState() {
     super.initState();
-    _initializeMap();
     _setupMethodChannel();
+    _initializeMap();
   }
 
   @override
@@ -58,6 +58,15 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   /// 初始化地图
   Future<void> _initializeMap() async {
     try {
+      // 检查API Key是否有效
+      if (widget.params.apiKey.isEmpty) {
+        setState(() {
+          _errorMessage = 'API Key is required';
+        });
+        widget.callbacks?.onMapError?.call('API Key is required');
+        return;
+      }
+
       // 初始化美团地图SDK
       final success = await MtMap.initialize(widget.params.apiKey);
       if (success) {

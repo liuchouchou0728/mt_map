@@ -15,6 +15,8 @@ class MtMap {
   }
 
   /// Initialize the Meituan Map SDK
+  /// Note: This method is now automatically called by MtMapWidget
+  /// You don't need to call this manually when using MtMapWidget
   static Future<bool> initialize(String apiKey) {
     return _platform.initialize(apiKey);
   }

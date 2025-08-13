@@ -10,7 +10,6 @@ class MapExample extends StatefulWidget {
 }
 
 class _MapExampleState extends State<MapExample> {
-  bool _isInitialized = false;
   List<MtMapMarker> _markers = [];
   List<MtMapPolyline> _polylines = [];
   List<MtMapPolygon> _polygons = [];
@@ -18,18 +17,7 @@ class _MapExampleState extends State<MapExample> {
   @override
   void initState() {
     super.initState();
-    _initializeMap();
-  }
-
-  Future<void> _initializeMap() async {
-    try {
-      final success = await MtMap.initialize('your_meituan_map_api_key_here');
-      setState(() {
-        _isInitialized = success;
-      });
-    } catch (e) {
-      print('地图初始化失败: $e');
-    }
+    // 地图容器会自动处理初始化，无需手动初始化
   }
 
   @override
@@ -54,22 +42,6 @@ class _MapExampleState extends State<MapExample> {
   }
 
   Widget _buildMapContainer() {
-    if (!_isInitialized) {
-      return Container(
-        color: Colors.grey[200],
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('正在初始化地图...'),
-            ],
-          ),
-        ),
-      );
-    }
-
     return MtMapWidget(
       params: MtMapWidgetParams(
         apiKey: 'your_meituan_map_api_key_here',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mt_map/mt_map.dart';
 import 'map_example.dart';
+import 'simple_example.dart';
 
 void main() {
   runApp(const MyApp());
@@ -68,6 +69,38 @@ class _MyAppState extends State<MyApp> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
+                          builder: (context) => const SimpleMapExample(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('简单地图示例（推荐）'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MinimalMapExample(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('最简地图示例'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
                           builder: (context) => const MapExample(),
                         ),
                       );
@@ -76,7 +109,7 @@ class _MyAppState extends State<MyApp> {
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('查看地图容器示例'),
+                    child: const Text('完整功能示例'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
@@ -88,7 +121,7 @@ class _MyAppState extends State<MyApp> {
                         ),
                       );
                     },
-                    child: const Text('查看基础API示例'),
+                    child: const Text('基础API示例'),
                   ),
                 ],
               ),
@@ -115,6 +148,7 @@ class _BasicExampleState extends State<BasicExample> {
   @override
   void initState() {
     super.initState();
+    // 基础API示例需要手动初始化
     _initializeMap();
   }
 

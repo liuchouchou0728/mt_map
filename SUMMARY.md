@@ -8,6 +8,7 @@
 
 ### 🎉 核心功能
 - **美团地图容器Widget**: 新增`MtMapWidget`，提供完整的Flutter Widget接口
+- **自动初始化**: 地图容器自动处理SDK初始化，简化使用流程
 - **标记点管理**: 支持添加、移除和自定义标记点
 - **路线绘制**: 支持绘制多段线和路线
 - **多边形绘制**: 支持绘制多边形区域
@@ -92,13 +93,10 @@ mt_map_plugin/
 ```dart
 import 'package:mt_map/mt_map.dart';
 
-// 初始化
-await MtMap.initialize('your_api_key');
-
-// 使用地图容器Widget
+// 使用地图容器Widget（自动初始化）
 MtMapWidget(
   params: MtMapWidgetParams(
-    apiKey: 'your_api_key',
+    apiKey: 'your_api_key', // 在这里提供API密钥
     initialPosition: MtMapPosition(
       latitude: 39.9042,
       longitude: 116.4074,
