@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 位置权限描述 -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>此应用需要访问位置信息以显示地图和提供导航服务</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>此应用需要访问位置信息以显示地图和提供导航服务</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>此应用需要访问位置信息以显示地图和提供导航服务</string>
+    
+    <!-- 网络权限 -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    
+    <!-- 相机权限（如果需要） -->
+    <key>NSCameraUsageDescription</key>
+    <string>此应用需要访问相机以提供拍照功能</string>
+    
+    <!-- 相册权限（如果需要） -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>此应用需要访问相册以选择图片</string>
+</dict>
+</plist>
+
