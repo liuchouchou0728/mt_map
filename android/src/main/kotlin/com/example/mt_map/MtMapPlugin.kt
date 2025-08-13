@@ -687,4 +687,9 @@ class MtMapPlatformView(
   override fun dispose() {
     // 清理资源
   }
+  
+  override fun setSize(width: Int, height: Int) {
+    // 设置PlatformView的尺寸
+    mapView.layoutParams = ViewGroup.LayoutParams(width, height)
+  }
 }

@@ -280,23 +280,31 @@ class _MtMapWidgetState extends State<MtMapWidget> {
     }
 
     // 使用PlatformView显示原生地图
-    return AndroidView(
-      viewType: 'mt_map_view',
-      onPlatformViewCreated: (int id) {
-        // 地图视图创建完成
-        setState(() {
-          _isMapReady = true;
-        });
-        widget.callbacks?.onMapReady?.call();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: AndroidView(
+            viewType: 'mt_map_view',
+            onPlatformViewCreated: (int id) {
+              // 地图视图创建完成
+              setState(() {
+                _isMapReady = true;
+              });
+              widget.callbacks?.onMapReady?.call();
+            },
+            creationParams: {
+              'apiKey': widget.params.apiKey,
+              'latitude': _currentLatitude,
+              'longitude': _currentLongitude,
+              'zoom': _currentZoom,
+              'style': widget.style?.toMap(),
+            },
+            creationParamsCodec: const StandardMessageCodec(),
+          ),
+        );
       },
-      creationParams: {
-        'apiKey': widget.params.apiKey,
-        'latitude': _currentLatitude,
-        'longitude': _currentLongitude,
-        'zoom': _currentZoom,
-        'style': widget.style?.toMap(),
-      },
-      creationParamsCodec: const StandardMessageCodec(),
     );
   }
 }
