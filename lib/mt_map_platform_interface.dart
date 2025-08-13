@@ -98,4 +98,64 @@ abstract class MtMapPlatform extends PlatformInterface {
   }) {
     throw UnimplementedError('searchNearby() has not been implemented.');
   }
+
+  // 新增的地图容器相关方法
+  Future<bool> addPolyline({
+    required List<Map<String, double>> points,
+    required int color,
+    required double width,
+    bool geodesic = true,
+  }) {
+    throw UnimplementedError('addPolyline() has not been implemented.');
+  }
+
+  Future<bool> removePolyline(int polylineId) {
+    throw UnimplementedError('removePolyline() has not been implemented.');
+  }
+
+  Future<bool> addPolygon({
+    required List<Map<String, double>> points,
+    required int fillColor,
+    required int strokeColor,
+    required double strokeWidth,
+  }) {
+    throw UnimplementedError('addPolygon() has not been implemented.');
+  }
+
+  Future<bool> removePolygon(int polygonId) {
+    throw UnimplementedError('removePolygon() has not been implemented.');
+  }
+
+  Future<bool> animateCamera({
+    required double latitude,
+    required double longitude,
+    double? zoom,
+    int? duration,
+  }) {
+    throw UnimplementedError('animateCamera() has not been implemented.');
+  }
+
+  Future<bool> setMapStyle(Map<String, dynamic> style) {
+    throw UnimplementedError('setMapStyle() has not been implemented.');
+  }
+
+  Future<bool> enableMyLocation(bool enabled) {
+    throw UnimplementedError('enableMyLocation() has not been implemented.');
+  }
+
+  Future<bool> enableMyLocationButton(bool enabled) {
+    throw UnimplementedError('enableMyLocationButton() has not been implemented.');
+  }
+
+  Future<bool> enableZoomControls(bool enabled) {
+    throw UnimplementedError('enableZoomControls() has not been implemented.');
+  }
+
+  Future<bool> enableCompass(bool enabled) {
+    throw UnimplementedError('enableCompass() has not been implemented.');
+  }
+
+  Future<bool> enableScaleBar(bool enabled) {
+    throw UnimplementedError('enableScaleBar() has not been implemented.');
+  }
 }

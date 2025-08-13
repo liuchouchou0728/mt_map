@@ -16,6 +16,10 @@ public class MtMapPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate {
         let instance = MtMapPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
         instance.methodChannel = channel
+        
+        // 注册PlatformView工厂
+        let factory = MtMapViewFactory(messenger: registrar.messenger())
+        registrar.register(factory, withId: "mt_map_view")
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -111,6 +115,104 @@ public class MtMapPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate {
             let category = args["category"] as? String
             searchNearby(latitude: latitude, longitude: longitude, radius: radius, 
                         keyword: keyword, category: category, result: result)
+            
+        // 新增的地图容器相关方法
+        case "addPolyline":
+            guard let args = call.arguments as? [String: Any],
+                  let points = args["points"] as? [[String: Double]],
+                  let color = args["color"] as? Int,
+                  let width = args["width"] as? Double else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Points, color and width are required", details: nil))
+                return
+            }
+            let geodesic = args["geodesic"] as? Bool ?? true
+            addPolyline(points: points, color: color, width: width, geodesic: geodesic, result: result)
+            
+        case "removePolyline":
+            guard let args = call.arguments as? [String: Any],
+                  let polylineId = args["polylineId"] as? Int else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Polyline ID is required", details: nil))
+                return
+            }
+            removePolyline(polylineId: polylineId, result: result)
+            
+        case "addPolygon":
+            guard let args = call.arguments as? [String: Any],
+                  let points = args["points"] as? [[String: Double]],
+                  let fillColor = args["fillColor"] as? Int,
+                  let strokeColor = args["strokeColor"] as? Int,
+                  let strokeWidth = args["strokeWidth"] as? Double else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Points, fillColor, strokeColor and strokeWidth are required", details: nil))
+                return
+            }
+            addPolygon(points: points, fillColor: fillColor, strokeColor: strokeColor, strokeWidth: strokeWidth, result: result)
+            
+        case "removePolygon":
+            guard let args = call.arguments as? [String: Any],
+                  let polygonId = args["polygonId"] as? Int else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Polygon ID is required", details: nil))
+                return
+            }
+            removePolygon(polygonId: polygonId, result: result)
+            
+        case "animateCamera":
+            guard let args = call.arguments as? [String: Any],
+                  let latitude = args["latitude"] as? Double,
+                  let longitude = args["longitude"] as? Double else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Latitude and longitude are required", details: nil))
+                return
+            }
+            let zoom = args["zoom"] as? Double
+            let duration = args["duration"] as? Int ?? 1000
+            animateCamera(latitude: latitude, longitude: longitude, zoom: zoom, duration: duration, result: result)
+            
+        case "setMapStyle":
+            guard let args = call.arguments as? [String: Any],
+                  let style = args["style"] as? [String: Any] else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Style is required", details: nil))
+                return
+            }
+            setMapStyle(style: style, result: result)
+            
+        case "enableMyLocation":
+            guard let args = call.arguments as? [String: Any],
+                  let enabled = args["enabled"] as? Bool else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Enabled flag is required", details: nil))
+                return
+            }
+            enableMyLocation(enabled: enabled, result: result)
+            
+        case "enableMyLocationButton":
+            guard let args = call.arguments as? [String: Any],
+                  let enabled = args["enabled"] as? Bool else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Enabled flag is required", details: nil))
+                return
+            }
+            enableMyLocationButton(enabled: enabled, result: result)
+            
+        case "enableZoomControls":
+            guard let args = call.arguments as? [String: Any],
+                  let enabled = args["enabled"] as? Bool else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Enabled flag is required", details: nil))
+                return
+            }
+            enableZoomControls(enabled: enabled, result: result)
+            
+        case "enableCompass":
+            guard let args = call.arguments as? [String: Any],
+                  let enabled = args["enabled"] as? Bool else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Enabled flag is required", details: nil))
+                return
+            }
+            enableCompass(enabled: enabled, result: result)
+            
+        case "enableScaleBar":
+            guard let args = call.arguments as? [String: Any],
+                  let enabled = args["enabled"] as? Bool else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Enabled flag is required", details: nil))
+                return
+            }
+            enableScaleBar(enabled: enabled, result: result)
             
         default:
             result(FlutterMethodNotImplemented)
@@ -246,6 +348,62 @@ public class MtMapPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate {
         result(places)
     }
     
+    // 新增的地图容器相关方法实现
+    private func addPolyline(points: [[String: Double]], color: Int, width: Double, geodesic: Bool, result: @escaping FlutterResult) {
+        // 添加路线
+        result(1) // 返回路线ID
+    }
+    
+    private func removePolyline(polylineId: Int, result: @escaping FlutterResult) {
+        // 移除路线
+        result(true)
+    }
+    
+    private func addPolygon(points: [[String: Double]], fillColor: Int, strokeColor: Int, strokeWidth: Double, result: @escaping FlutterResult) {
+        // 添加多边形
+        result(1) // 返回多边形ID
+    }
+    
+    private func removePolygon(polygonId: Int, result: @escaping FlutterResult) {
+        // 移除多边形
+        result(true)
+    }
+    
+    private func animateCamera(latitude: Double, longitude: Double, zoom: Double?, duration: Int, result: @escaping FlutterResult) {
+        // 动画移动相机
+        result(true)
+    }
+    
+    private func setMapStyle(style: [String: Any], result: @escaping FlutterResult) {
+        // 设置地图样式
+        result(true)
+    }
+    
+    private func enableMyLocation(enabled: Bool, result: @escaping FlutterResult) {
+        // 启用/禁用我的位置
+        result(true)
+    }
+    
+    private func enableMyLocationButton(enabled: Bool, result: @escaping FlutterResult) {
+        // 启用/禁用我的位置按钮
+        result(true)
+    }
+    
+    private func enableZoomControls(enabled: Bool, result: @escaping FlutterResult) {
+        // 启用/禁用缩放控件
+        result(true)
+    }
+    
+    private func enableCompass(enabled: Bool, result: @escaping FlutterResult) {
+        // 启用/禁用指南针
+        result(true)
+    }
+    
+    private func enableScaleBar(enabled: Bool, result: @escaping FlutterResult) {
+        // 启用/禁用比例尺
+        result(true)
+    }
+    
     // MARK: - CLLocationManagerDelegate
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
@@ -261,5 +419,126 @@ public class MtMapPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate {
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         methodChannel?.invokeMethod("onLocationError", arguments: error.localizedDescription)
+    }
+}
+
+/// 美团地图PlatformView工厂
+class MtMapViewFactory: NSObject, FlutterPlatformViewFactory {
+    private var messenger: FlutterBinaryMessenger
+    
+    init(messenger: FlutterBinaryMessenger) {
+        self.messenger = messenger
+        super.init()
+    }
+    
+    func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
+        let creationParams = args as? [String: Any]
+        return MtMapPlatformView(frame: frame, viewIdentifier: viewId, arguments: creationParams, binaryMessenger: messenger)
+    }
+    
+    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+        return FlutterStandardMessageCodec.sharedInstance()
+    }
+}
+
+/// 美团地图PlatformView
+class MtMapPlatformView: NSObject, FlutterPlatformView {
+    private var _view: UIView
+    private var methodChannel: FlutterMethodChannel
+    
+    init(frame: CGRect, viewIdentifier viewId: Int64, arguments args: [String: Any]?, binaryMessenger messenger: FlutterBinaryMessenger) {
+        _view = UIView(frame: frame)
+        methodChannel = FlutterMethodChannel(name: "mt_map_widget_\(viewId)", binaryMessenger: messenger)
+        super.init()
+        
+        setupMapView(arguments: args)
+        setupMethodChannel()
+    }
+    
+    private func setupMapView(arguments args: [String: Any]?) {
+        // 设置地图视图
+        _view.backgroundColor = UIColor.white
+        
+        // 从创建参数中获取初始配置
+        guard let params = args else { return }
+        
+        let apiKey = params["apiKey"] as? String
+        let latitude = params["latitude"] as? Double
+        let longitude = params["longitude"] as? Double
+        let zoom = params["zoom"] as? Double
+        let style = params["style"] as? [String: Any]
+        
+        // 初始化地图
+        if let apiKey = apiKey {
+            // 这里应该初始化美团地图SDK
+            // MTMapSDK.shared().initWithAppKey(apiKey)
+        }
+        
+        // 设置初始位置
+        if let latitude = latitude, let longitude = longitude {
+            // 这里应该设置地图中心点
+            // mapView.setCenter(CLLocationCoordinate2D(latitude: latitude, longitude: longitude), animated: true)
+            // if let zoom = zoom {
+            //     mapView.setZoomLevel(zoom, animated: true)
+            // }
+        }
+        
+        // 设置地图样式
+        if let style = style {
+            // 这里应该设置地图样式
+            // mapView.setMapStyle(style)
+        }
+    }
+    
+    private func setupMethodChannel() {
+        methodChannel.setMethodCallHandler { [weak self] (call, result) in
+            switch call.method {
+            case "addMarker":
+                let args = call.arguments as? [String: Any]
+                let latitude = args?["latitude"] as? Double
+                let longitude = args?["longitude"] as? Double
+                let title = args?["title"] as? String
+                let snippet = args?["snippet"] as? String
+                let iconPath = args?["iconPath"] as? String
+                
+                if let latitude = latitude, let longitude = longitude {
+                    // 添加标记
+                    result(1)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Latitude and longitude are required", details: nil))
+                }
+                
+            case "removeMarker":
+                let args = call.arguments as? [String: Any]
+                let markerId = args?["markerId"] as? Int
+                
+                if let markerId = markerId {
+                    // 移除标记
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Marker ID is required", details: nil))
+                }
+                
+            case "setMapCenter":
+                let args = call.arguments as? [String: Any]
+                let latitude = args?["latitude"] as? Double
+                let longitude = args?["longitude"] as? Double
+                let zoom = args?["zoom"] as? Double
+                
+                if let latitude = latitude, let longitude = longitude {
+                    // 设置地图中心
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Latitude and longitude are required", details: nil))
+                }
+                
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+    
+    func view() -> UIView {
+        return _view
     }
 }

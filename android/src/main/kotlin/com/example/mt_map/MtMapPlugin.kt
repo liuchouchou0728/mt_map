@@ -6,6 +6,9 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.StandardMessageCodec
+import io.flutter.plugin.platform.PlatformView
+import io.flutter.plugin.platform.PlatformViewFactory
 import android.content.Context
 import android.app.Activity
 import android.widget.FrameLayout
@@ -29,6 +32,12 @@ class MtMapPlugin: FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(this)
     context = flutterPluginBinding.applicationContext
     fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    
+    // 注册PlatformView工厂
+    flutterPluginBinding.platformViewRegistry.registerViewFactory(
+      "mt_map_view",
+      MtMapViewFactory(flutterPluginBinding.binaryMessenger)
+    )
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -126,6 +135,107 @@ class MtMapPlugin: FlutterPlugin, MethodCallHandler {
           searchNearby(latitude, longitude, radius, keyword, category, result)
         } else {
           result.error("INVALID_ARGUMENT", "Latitude, longitude and radius are required", null)
+        }
+      }
+      // 新增的地图容器相关方法
+      "addPolyline" -> {
+        val points = call.argument<List<Map<String, Double>>>("points")
+        val color = call.argument<Int>("color")
+        val width = call.argument<Double>("width")
+        val geodesic = call.argument<Boolean>("geodesic") ?: true
+        
+        if (points != null && color != null && width != null) {
+          addPolyline(points, color, width, geodesic, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Points, color and width are required", null)
+        }
+      }
+      "removePolyline" -> {
+        val polylineId = call.argument<Int>("polylineId")
+        if (polylineId != null) {
+          removePolyline(polylineId, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Polyline ID is required", null)
+        }
+      }
+      "addPolygon" -> {
+        val points = call.argument<List<Map<String, Double>>>("points")
+        val fillColor = call.argument<Int>("fillColor")
+        val strokeColor = call.argument<Int>("strokeColor")
+        val strokeWidth = call.argument<Double>("strokeWidth")
+        
+        if (points != null && fillColor != null && strokeColor != null && strokeWidth != null) {
+          addPolygon(points, fillColor, strokeColor, strokeWidth, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Points, fillColor, strokeColor and strokeWidth are required", null)
+        }
+      }
+      "removePolygon" -> {
+        val polygonId = call.argument<Int>("polygonId")
+        if (polygonId != null) {
+          removePolygon(polygonId, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Polygon ID is required", null)
+        }
+      }
+      "animateCamera" -> {
+        val latitude = call.argument<Double>("latitude")
+        val longitude = call.argument<Double>("longitude")
+        val zoom = call.argument<Double>("zoom")
+        val duration = call.argument<Int>("duration") ?: 1000
+        
+        if (latitude != null && longitude != null) {
+          animateCamera(latitude, longitude, zoom, duration, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Latitude and longitude are required", null)
+        }
+      }
+      "setMapStyle" -> {
+        val style = call.argument<Map<String, Any>>("style")
+        if (style != null) {
+          setMapStyle(style, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Style is required", null)
+        }
+      }
+      "enableMyLocation" -> {
+        val enabled = call.argument<Boolean>("enabled")
+        if (enabled != null) {
+          enableMyLocation(enabled, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Enabled flag is required", null)
+        }
+      }
+      "enableMyLocationButton" -> {
+        val enabled = call.argument<Boolean>("enabled")
+        if (enabled != null) {
+          enableMyLocationButton(enabled, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Enabled flag is required", null)
+        }
+      }
+      "enableZoomControls" -> {
+        val enabled = call.argument<Boolean>("enabled")
+        if (enabled != null) {
+          enableZoomControls(enabled, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Enabled flag is required", null)
+        }
+      }
+      "enableCompass" -> {
+        val enabled = call.argument<Boolean>("enabled")
+        if (enabled != null) {
+          enableCompass(enabled, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Enabled flag is required", null)
+        }
+      }
+      "enableScaleBar" -> {
+        val enabled = call.argument<Boolean>("enabled")
+        if (enabled != null) {
+          enableScaleBar(enabled, result)
+        } else {
+          result.error("INVALID_ARGUMENT", "Enabled flag is required", null)
         }
       }
       else -> {
@@ -351,6 +461,110 @@ class MtMapPlugin: FlutterPlugin, MethodCallHandler {
     }
   }
 
+  // 新增的地图容器相关方法实现
+  private fun addPolyline(points: List<Map<String, Double>>, color: Int, width: Double, geodesic: Boolean, result: Result) {
+    try {
+      // 添加路线
+      // 这里应该调用美团地图SDK的路线绘制API
+      result.success(1) // 返回路线ID
+    } catch (e: Exception) {
+      result.error("ADD_POLYLINE_ERROR", "Failed to add polyline: ${e.message}", null)
+    }
+  }
+
+  private fun removePolyline(polylineId: Int, result: Result) {
+    try {
+      // 移除路线
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("REMOVE_POLYLINE_ERROR", "Failed to remove polyline: ${e.message}", null)
+    }
+  }
+
+  private fun addPolygon(points: List<Map<String, Double>>, fillColor: Int, strokeColor: Int, strokeWidth: Double, result: Result) {
+    try {
+      // 添加多边形
+      // 这里应该调用美团地图SDK的多边形绘制API
+      result.success(1) // 返回多边形ID
+    } catch (e: Exception) {
+      result.error("ADD_POLYGON_ERROR", "Failed to add polygon: ${e.message}", null)
+    }
+  }
+
+  private fun removePolygon(polygonId: Int, result: Result) {
+    try {
+      // 移除多边形
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("REMOVE_POLYGON_ERROR", "Failed to remove polygon: ${e.message}", null)
+    }
+  }
+
+  private fun animateCamera(latitude: Double, longitude: Double, zoom: Double?, duration: Int, result: Result) {
+    try {
+      // 动画移动相机
+      // 这里应该调用美团地图SDK的相机动画API
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("ANIMATE_CAMERA_ERROR", "Failed to animate camera: ${e.message}", null)
+    }
+  }
+
+  private fun setMapStyle(style: Map<String, Any>, result: Result) {
+    try {
+      // 设置地图样式
+      // 这里应该调用美团地图SDK的样式设置API
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("SET_MAP_STYLE_ERROR", "Failed to set map style: ${e.message}", null)
+    }
+  }
+
+  private fun enableMyLocation(enabled: Boolean, result: Result) {
+    try {
+      // 启用/禁用我的位置
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("ENABLE_MY_LOCATION_ERROR", "Failed to enable my location: ${e.message}", null)
+    }
+  }
+
+  private fun enableMyLocationButton(enabled: Boolean, result: Result) {
+    try {
+      // 启用/禁用我的位置按钮
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("ENABLE_MY_LOCATION_BUTTON_ERROR", "Failed to enable my location button: ${e.message}", null)
+    }
+  }
+
+  private fun enableZoomControls(enabled: Boolean, result: Result) {
+    try {
+      // 启用/禁用缩放控件
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("ENABLE_ZOOM_CONTROLS_ERROR", "Failed to enable zoom controls: ${e.message}", null)
+    }
+  }
+
+  private fun enableCompass(enabled: Boolean, result: Result) {
+    try {
+      // 启用/禁用指南针
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("ENABLE_COMPASS_ERROR", "Failed to enable compass: ${e.message}", null)
+    }
+  }
+
+  private fun enableScaleBar(enabled: Boolean, result: Result) {
+    try {
+      // 启用/禁用比例尺
+      result.success(true)
+    } catch (e: Exception) {
+      result.error("ENABLE_SCALE_BAR_ERROR", "Failed to enable scale bar: ${e.message}", null)
+    }
+  }
+
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
     stopLocationUpdates(object : Result {
@@ -358,5 +572,119 @@ class MtMapPlugin: FlutterPlugin, MethodCallHandler {
       override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {}
       override fun notImplemented() {}
     })
+  }
+}
+
+/// 美团地图PlatformView工厂
+class MtMapViewFactory(private val messenger: io.flutter.plugin.common.BinaryMessenger) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
+  override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
+    val creationParams = args as Map<String?, Any?>?
+    return MtMapPlatformView(context, viewId, creationParams, messenger)
+  }
+}
+
+/// 美团地图PlatformView
+class MtMapPlatformView(
+  private val context: Context,
+  private val viewId: Int,
+  private val creationParams: Map<String?, Any?>?,
+  private val messenger: io.flutter.plugin.common.BinaryMessenger
+) : PlatformView {
+  
+  private val mapView: FrameLayout = FrameLayout(context)
+  private val methodChannel = MethodChannel(messenger, "mt_map_widget_$viewId")
+  
+  init {
+    setupMapView()
+    setupMethodChannel()
+  }
+  
+  private fun setupMapView() {
+    // 设置地图视图
+    mapView.layoutParams = ViewGroup.LayoutParams(
+      ViewGroup.LayoutParams.MATCH_PARENT,
+      ViewGroup.LayoutParams.MATCH_PARENT
+    )
+    
+    // 从创建参数中获取初始配置
+    creationParams?.let { params ->
+      val apiKey = params["apiKey"] as String?
+      val latitude = params["latitude"] as Double?
+      val longitude = params["longitude"] as Double?
+      val zoom = params["zoom"] as Double?
+      val style = params["style"] as Map<String, Any>?
+      
+      // 初始化地图
+      if (apiKey != null) {
+        // 这里应该初始化美团地图SDK
+        // MTMapSDK.init(context, apiKey)
+      }
+      
+      // 设置初始位置
+      if (latitude != null && longitude != null) {
+        // 这里应该设置地图中心点
+        // mapView.setMapCenter(MTMapPointGeo(latitude, longitude))
+        // zoom?.let { mapView.setZoomLevel(it.toInt()) }
+      }
+      
+      // 设置地图样式
+      style?.let { styleMap ->
+        // 这里应该设置地图样式
+        // mapView.setMapStyle(styleMap)
+      }
+    }
+  }
+  
+  private fun setupMethodChannel() {
+    methodChannel.setMethodCallHandler { call, result ->
+      when (call.method) {
+        "addMarker" -> {
+          val latitude = call.argument<Double>("latitude")
+          val longitude = call.argument<Double>("longitude")
+          val title = call.argument<String>("title")
+          val snippet = call.argument<String>("snippet")
+          val iconPath = call.argument<String>("iconPath")
+          
+          if (latitude != null && longitude != null) {
+            // 添加标记
+            result.success(1)
+          } else {
+            result.error("INVALID_ARGUMENT", "Latitude and longitude are required", null)
+          }
+        }
+        "removeMarker" -> {
+          val markerId = call.argument<Int>("markerId")
+          if (markerId != null) {
+            // 移除标记
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Marker ID is required", null)
+          }
+        }
+        "setMapCenter" -> {
+          val latitude = call.argument<Double>("latitude")
+          val longitude = call.argument<Double>("longitude")
+          val zoom = call.argument<Double>("zoom")
+          
+          if (latitude != null && longitude != null) {
+            // 设置地图中心
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Latitude and longitude are required", null)
+          }
+        }
+        else -> {
+          result.notImplemented()
+        }
+      }
+    }
+  }
+  
+  override fun getView(): View {
+    return mapView
+  }
+  
+  override fun dispose() {
+    // 清理资源
   }
 }

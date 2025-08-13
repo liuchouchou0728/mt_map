@@ -138,4 +138,117 @@ class MethodChannelMtMap extends MtMapPlatform {
     });
     return result?.cast<Map<String, dynamic>>();
   }
+
+  // 新增的地图容器相关方法实现
+  @override
+  Future<bool> addPolyline({
+    required List<Map<String, double>> points,
+    required int color,
+    required double width,
+    bool geodesic = true,
+  }) async {
+    final result = await methodChannel.invokeMethod<bool>('addPolyline', {
+      'points': points,
+      'color': color,
+      'width': width,
+      'geodesic': geodesic,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> removePolyline(int polylineId) async {
+    final result = await methodChannel.invokeMethod<bool>('removePolyline', {
+      'polylineId': polylineId,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> addPolygon({
+    required List<Map<String, double>> points,
+    required int fillColor,
+    required int strokeColor,
+    required double strokeWidth,
+  }) async {
+    final result = await methodChannel.invokeMethod<bool>('addPolygon', {
+      'points': points,
+      'fillColor': fillColor,
+      'strokeColor': strokeColor,
+      'strokeWidth': strokeWidth,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> removePolygon(int polygonId) async {
+    final result = await methodChannel.invokeMethod<bool>('removePolygon', {
+      'polygonId': polygonId,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> animateCamera({
+    required double latitude,
+    required double longitude,
+    double? zoom,
+    int? duration,
+  }) async {
+    final result = await methodChannel.invokeMethod<bool>('animateCamera', {
+      'latitude': latitude,
+      'longitude': longitude,
+      'zoom': zoom,
+      'duration': duration ?? 1000,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> setMapStyle(Map<String, dynamic> style) async {
+    final result = await methodChannel.invokeMethod<bool>('setMapStyle', {
+      'style': style,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> enableMyLocation(bool enabled) async {
+    final result = await methodChannel.invokeMethod<bool>('enableMyLocation', {
+      'enabled': enabled,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> enableMyLocationButton(bool enabled) async {
+    final result = await methodChannel.invokeMethod<bool>('enableMyLocationButton', {
+      'enabled': enabled,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> enableZoomControls(bool enabled) async {
+    final result = await methodChannel.invokeMethod<bool>('enableZoomControls', {
+      'enabled': enabled,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> enableCompass(bool enabled) async {
+    final result = await methodChannel.invokeMethod<bool>('enableCompass', {
+      'enabled': enabled,
+    });
+    return result ?? false;
+  }
+
+  @override
+  Future<bool> enableScaleBar(bool enabled) async {
+    final result = await methodChannel.invokeMethod<bool>('enableScaleBar', {
+      'enabled': enabled,
+    });
+    return result ?? false;
+  }
 }

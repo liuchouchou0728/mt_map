@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:typed_data';
-
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 
 import 'mt_map_platform_interface.dart';
 
 export 'mt_map_platform_interface.dart';
+export 'mt_map_widget.dart';
 
 /// Main class for interacting with Meituan Map SDK
 class MtMap {

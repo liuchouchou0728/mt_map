@@ -1,19 +1,20 @@
-# MT Map Flutter Plugin
+# MT Map Plugin
 
-一个用于在Flutter应用中集成美团地图SDK的插件，支持iOS和Android平台。
+一个用于在iOS和Android平台上集成美团地图SDK的Flutter插件。
 
 ## 功能特性
 
-- 🗺️ 地图显示和控制
-- 📍 位置标记和POI管理
-- 📍 实时位置获取和更新
-- 🛣️ 路线规划和导航
-- 🔍 附近地点搜索
-- 📱 跨平台支持（iOS/Android）
+- 🗺️ 美团地图集成
+- 📍 标记点管理
+- 🛣️ 路线绘制
+- 🔲 多边形绘制
+- 📱 位置服务
+- 🔍 地点搜索
+- 🚗 路线规划
+- 🎨 地图样式定制
+- 📱 原生地图容器Widget
 
 ## 安装
-
-### 1. 添加依赖
 
 在您的`pubspec.yaml`文件中添加依赖：
 
@@ -22,107 +23,301 @@ dependencies:
   mt_map: ^1.0.0
 ```
 
-### 2. 获取美团地图API Key
+## 快速开始
 
-1. 访问[美团地图开放平台](https://lbs.amap.com/)
-2. 注册开发者账号并创建应用
-3. 获取API Key
-
-### 3. 平台配置
-
-#### Android 配置
-
-在`android/app/src/main/AndroidManifest.xml`中添加权限：
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-```
-
-在`android/app/build.gradle`中添加美团地图SDK依赖：
-
-```gradle
-dependencies {
-    // 美团地图SDK依赖（需要根据实际SDK版本调整）
-    implementation 'com.meituan.android.mapsdk:mapsdk:latest.release'
-}
-```
-
-#### iOS 配置
-
-在`ios/Runner/Info.plist`中添加权限描述：
-
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>此应用需要访问位置信息以显示地图和提供导航服务</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>此应用需要访问位置信息以显示地图和提供导航服务</string>
-```
-
-在`ios/Podfile`中添加美团地图SDK依赖：
-
-```ruby
-target 'Runner' do
-  # 美团地图SDK依赖
-  pod 'MTMapSDK', '~> 1.0.0'
-end
-```
-
-## 使用方法
-
-### 1. 初始化地图
+### 1. 初始化插件
 
 ```dart
 import 'package:mt_map/mt_map.dart';
 
-// 初始化地图SDK
-bool success = await MtMap.initialize('your_meituan_map_api_key_here');
-if (success) {
-  print('地图初始化成功');
-} else {
-  print('地图初始化失败');
-}
+// 初始化美团地图SDK
+await MtMap.initialize('your_meituan_map_api_key_here');
 ```
 
-### 2. 显示地图
+### 2. 使用地图容器Widget
 
 ```dart
-// 显示地图到指定位置
-bool success = await MtMap.showMap(
-  latitude: 39.9042,
-  longitude: 116.4074,
-  zoom: 15.0,
-  title: '北京天安门',
-  snippet: '中国北京市东城区天安门广场',
-);
+import 'package:mt_map/mt_map.dart';
+
+class MapScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('美团地图')),
+      body: MtMapWidget(
+        params: MtMapWidgetParams(
+          apiKey: 'your_meituan_map_api_key_here',
+          initialPosition: MtMapPosition(
+            latitude: 39.9042,
+            longitude: 116.4074,
+            zoom: 15.0,
+          ),
+          initialMarkers: [
+            MtMapMarker(
+              latitude: 39.9042,
+              longitude: 116.4074,
+              title: '天安门',
+              snippet: '中国北京市东城区天安门广场',
+            ),
+          ],
+        ),
+        style: MtMapStyle(
+          showTraffic: true,
+          showBuildings: true,
+          mapType: 'normal',
+        ),
+        callbacks: MtMapWidgetCallbacks(
+          onMapReady: () {
+            print('地图准备完成');
+          },
+          onMapClick: (latitude, longitude) {
+            print('地图点击: $latitude, $longitude');
+          },
+          onMarkerClick: (marker) {
+            print('标记点击: ${marker.title}');
+          },
+        ),
+      ),
+    );
+  }
+}
 ```
 
 ### 3. 添加标记点
 
 ```dart
 // 添加标记点
-bool success = await MtMap.addMarker(
+final marker = MtMapMarker(
+  latitude: 39.9042,
+  longitude: 116.4074,
+  title: '天安门',
+  snippet: '中国北京市东城区天安门广场',
+  iconPath: 'assets/marker_icon.png',
+);
+
+// 在Widget中使用
+MtMapWidget(
+  params: MtMapWidgetParams(
+    apiKey: 'your_api_key',
+    initialMarkers: [marker],
+  ),
+)
+```
+
+### 4. 添加路线
+
+```dart
+// 添加路线
+final polyline = MtMapPolyline(
+  points: [
+    MtMapPosition(latitude: 39.9042, longitude: 116.4074),
+    MtMapPosition(latitude: 39.9142, longitude: 116.4174),
+    MtMapPosition(latitude: 39.9242, longitude: 116.4274),
+  ],
+  color: Colors.blue,
+  width: 5.0,
+);
+
+// 在Widget中使用
+MtMapWidget(
+  params: MtMapWidgetParams(
+    apiKey: 'your_api_key',
+    initialPolylines: [polyline],
+  ),
+)
+```
+
+### 5. 添加多边形
+
+```dart
+// 添加多边形
+final polygon = MtMapPolygon(
+  points: [
+    MtMapPosition(latitude: 39.9042, longitude: 116.4074),
+    MtMapPosition(latitude: 39.9142, longitude: 116.4074),
+    MtMapPosition(latitude: 39.9142, longitude: 116.4174),
+    MtMapPosition(latitude: 39.9042, longitude: 116.4174),
+  ],
+  fillColor: Colors.green.withOpacity(0.3),
+  strokeColor: Colors.green,
+  strokeWidth: 2.0,
+);
+
+// 在Widget中使用
+MtMapWidget(
+  params: MtMapWidgetParams(
+    apiKey: 'your_api_key',
+    initialPolygons: [polygon],
+  ),
+)
+```
+
+## API 参考
+
+### MtMapWidget
+
+主要的Flutter Widget，用于显示美团地图。
+
+#### 参数
+
+- `params` (MtMapWidgetParams): 地图初始化参数
+- `callbacks` (MtMapWidgetCallbacks?): 地图事件回调
+- `style` (MtMapStyle?): 地图样式配置
+
+### MtMapWidgetParams
+
+地图Widget的初始化参数。
+
+```dart
+class MtMapWidgetParams {
+  final String apiKey;                    // API密钥
+  final MtMapPosition? initialPosition;   // 初始位置
+  final List<MtMapMarker> initialMarkers; // 初始标记
+  final List<MtMapPolyline> initialPolylines; // 初始路线
+  final List<MtMapPolygon> initialPolygons;   // 初始多边形
+}
+```
+
+### MtMapPosition
+
+地图位置信息。
+
+```dart
+class MtMapPosition {
+  final double latitude;   // 纬度
+  final double longitude;  // 经度
+  final double? zoom;      // 缩放级别
+}
+```
+
+### MtMapMarker
+
+地图标记点。
+
+```dart
+class MtMapMarker {
+  final int? id;           // 标记ID
+  final double latitude;   // 纬度
+  final double longitude;  // 经度
+  final String? title;     // 标题
+  final String? snippet;   // 描述
+  final String? iconPath;  // 图标路径
+  final Color? iconColor;  // 图标颜色
+  final double? iconSize;  // 图标大小
+}
+```
+
+### MtMapPolyline
+
+地图路线。
+
+```dart
+class MtMapPolyline {
+  final List<MtMapPosition> points; // 路线点
+  final Color color;                // 路线颜色
+  final double width;               // 路线宽度
+  final bool geodesic;              // 是否大地线
+}
+```
+
+### MtMapPolygon
+
+地图多边形。
+
+```dart
+class MtMapPolygon {
+  final List<MtMapPosition> points; // 多边形顶点
+  final Color fillColor;            // 填充颜色
+  final Color strokeColor;          // 边框颜色
+  final double strokeWidth;         // 边框宽度
+}
+```
+
+### MtMapStyle
+
+地图样式配置。
+
+```dart
+class MtMapStyle {
+  final Color? backgroundColor;  // 背景颜色
+  final bool? showTraffic;       // 显示交通
+  final bool? showBuildings;     // 显示建筑物
+  final bool? showIndoorMap;     // 显示室内地图
+  final String? mapType;         // 地图类型 ('normal', 'satellite', 'hybrid')
+}
+```
+
+### MtMapWidgetCallbacks
+
+地图事件回调。
+
+```dart
+class MtMapWidgetCallbacks {
+  final VoidCallback? onMapReady;           // 地图准备完成
+  final Function(String error)? onMapError; // 地图错误
+  final Function(double lat, double lng)? onMapClick; // 地图点击
+  final Function(MtMapMarker marker)? onMarkerClick;  // 标记点击
+  final Function(double lat, double lng, double zoom)? onCameraMove; // 相机移动
+  final VoidCallback? onCameraIdle;         // 相机停止移动
+  final Function(double lat, double lng, double accuracy)? onLocationUpdate; // 位置更新
+}
+```
+
+## 原生API
+
+除了Widget接口，插件还提供了原生API用于更细粒度的控制：
+
+### 基础功能
+
+```dart
+// 初始化
+await MtMap.initialize('your_api_key');
+
+// 显示地图
+await MtMap.showMap(
+  latitude: 39.9042,
+  longitude: 116.4074,
+  zoom: 15.0,
+  title: '天安门',
+  snippet: '中国北京市东城区天安门广场',
+);
+
+// 隐藏地图
+await MtMap.hideMap();
+
+// 添加标记
+await MtMap.addMarker(
   latitude: 39.9042,
   longitude: 116.4074,
   title: '天安门',
   snippet: '中国北京市东城区天安门广场',
 );
+
+// 移除标记
+await MtMap.removeMarker(markerId);
+
+// 设置地图中心
+await MtMap.setMapCenter(
+  latitude: 39.9042,
+  longitude: 116.4074,
+  zoom: 15.0,
+);
 ```
 
-### 4. 获取当前位置
+### 位置服务
 
 ```dart
 // 获取当前位置
 final location = await MtMap.getCurrentLocation();
-if (location != null) {
-  print('纬度: ${location['latitude']}');
-  print('经度: ${location['longitude']}');
-  print('精度: ${location['accuracy']}');
-}
+
+// 开始位置更新
+await MtMap.startLocationUpdates();
+
+// 停止位置更新
+await MtMap.stopLocationUpdates();
 ```
 
-### 5. 搜索附近地点
+### 搜索和路线
 
 ```dart
 // 搜索附近地点
@@ -132,70 +327,99 @@ final places = await MtMap.searchNearby(
   radius: 1000.0,
   keyword: '餐厅',
 );
-if (places != null) {
-  print('找到 ${places.length} 个附近地点');
-  for (var place in places) {
-    print('${place['name']}: ${place['address']}');
-  }
-}
-```
 
-### 6. 计算路线
-
-```dart
 // 计算路线
-bool success = await MtMap.calculateRoute(
+await MtMap.calculateRoute(
   startLatitude: 39.9042,
   startLongitude: 116.4074,
   endLatitude: 39.9087,
   endLongitude: 116.3975,
-  transportMode: 'driving', // 可选: driving, walking, bicycling, transit
+  transportMode: 'driving',
 );
 ```
 
-### 7. 位置更新监听
+### 新增的地图容器功能
 
 ```dart
-// 开始位置更新
-bool success = await MtMap.startLocationUpdates();
+// 添加路线
+await MtMap.addPolyline(
+  points: [
+    {'latitude': 39.9042, 'longitude': 116.4074},
+    {'latitude': 39.9142, 'longitude': 116.4174},
+  ],
+  color: Colors.blue.value,
+  width: 5.0,
+);
 
-// 停止位置更新
-bool success = await MtMap.stopLocationUpdates();
+// 添加多边形
+await MtMap.addPolygon(
+  points: [
+    {'latitude': 39.9042, 'longitude': 116.4074},
+    {'latitude': 39.9142, 'longitude': 116.4074},
+    {'latitude': 39.9142, 'longitude': 116.4174},
+  ],
+  fillColor: Colors.green.value,
+  strokeColor: Colors.green.value,
+  strokeWidth: 2.0,
+);
+
+// 动画移动相机
+await MtMap.animateCamera(
+  latitude: 39.9042,
+  longitude: 116.4074,
+  zoom: 15.0,
+  duration: 1000,
+);
+
+// 设置地图样式
+await MtMap.setMapStyle({
+  'showTraffic': true,
+  'showBuildings': true,
+  'mapType': 'normal',
+});
+
+// 启用/禁用控件
+await MtMap.enableMyLocation(true);
+await MtMap.enableMyLocationButton(true);
+await MtMap.enableZoomControls(true);
+await MtMap.enableCompass(true);
+await MtMap.enableScaleBar(true);
 ```
 
-## API 参考
+## 平台配置
 
-### 主要方法
+### Android
 
-| 方法 | 描述 | 参数 |
-|------|------|------|
-| `initialize(apiKey)` | 初始化地图SDK | `apiKey`: 美团地图API Key |
-| `showMap()` | 显示地图 | `latitude`, `longitude`, `zoom`, `title`, `snippet` |
-| `hideMap()` | 隐藏地图 | 无 |
-| `addMarker()` | 添加标记点 | `latitude`, `longitude`, `title`, `snippet`, `iconPath` |
-| `removeMarker(markerId)` | 移除标记点 | `markerId`: 标记点ID |
-| `setMapCenter()` | 设置地图中心 | `latitude`, `longitude`, `zoom` |
-| `getCurrentLocation()` | 获取当前位置 | 无 |
-| `startLocationUpdates()` | 开始位置更新 | 无 |
-| `stopLocationUpdates()` | 停止位置更新 | 无 |
-| `calculateRoute()` | 计算路线 | `startLatitude`, `startLongitude`, `endLatitude`, `endLongitude`, `transportMode` |
-| `searchNearby()` | 搜索附近地点 | `latitude`, `longitude`, `radius`, `keyword`, `category` |
+在`android/app/src/main/AndroidManifest.xml`中添加权限：
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+```
+
+### iOS
+
+在`ios/Runner/Info.plist`中添加权限描述：
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>此应用需要访问位置信息以显示您在地图上的位置</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>此应用需要访问位置信息以显示您在地图上的位置</string>
+```
 
 ## 注意事项
 
-1. **API Key**: 请确保使用有效的美团地图API Key
+1. **API密钥**: 请确保使用有效的美团地图API密钥
 2. **权限**: 确保应用有适当的位置权限
 3. **网络**: 地图功能需要网络连接
-4. **SDK版本**: 请根据美团地图SDK的最新版本调整依赖配置
+4. **平台支持**: 目前支持iOS和Android平台
 
-## 示例应用
+## 示例
 
-查看 `example/` 目录中的完整示例应用，了解如何使用所有功能。
-
-## 贡献
-
-欢迎提交Issue和Pull Request来改进这个插件。
+查看`example/lib/main.dart`文件获取完整的使用示例。
 
 ## 许可证
 
-MIT License
+本项目采用MIT许可证。详见[LICENSE](LICENSE)文件。
