@@ -668,9 +668,81 @@ class MtMapPlatformView(
           
           if (latitude != null && longitude != null) {
             // 设置地图中心
+            // 这里应该调用美团地图SDK的方法
+            // mapView.setMapCenter(MTMapPointGeo(latitude, longitude))
+            // zoom?.let { mapView.setZoomLevel(it.toInt()) }
             result.success(true)
           } else {
             result.error("INVALID_ARGUMENT", "Latitude and longitude are required", null)
+          }
+        }
+        "addPolyline" -> {
+          val points = call.argument<List<Map<String, Any>>>("points")
+          val color = call.argument<Int>("color")
+          val width = call.argument<Double>("width")
+          
+          if (points != null) {
+            // 添加路线
+            // 这里应该调用美团地图SDK的方法
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Points are required", null)
+          }
+        }
+        "removePolyline" -> {
+          val polylineId = call.argument<Int>("polylineId")
+          if (polylineId != null) {
+            // 移除路线
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Polyline ID is required", null)
+          }
+        }
+        "addPolygon" -> {
+          val points = call.argument<List<Map<String, Any>>>("points")
+          val fillColor = call.argument<Int>("fillColor")
+          val strokeColor = call.argument<Int>("strokeColor")
+          val strokeWidth = call.argument<Double>("strokeWidth")
+          
+          if (points != null) {
+            // 添加多边形
+            // 这里应该调用美团地图SDK的方法
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Points are required", null)
+          }
+        }
+        "removePolygon" -> {
+          val polygonId = call.argument<Int>("polygonId")
+          if (polygonId != null) {
+            // 移除多边形
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Polygon ID is required", null)
+          }
+        }
+        "animateCamera" -> {
+          val latitude = call.argument<Double>("latitude")
+          val longitude = call.argument<Double>("longitude")
+          val zoom = call.argument<Double>("zoom")
+          val duration = call.argument<Int>("duration") ?: 1000
+          
+          if (latitude != null && longitude != null) {
+            // 动画移动相机
+            // 这里应该调用美团地图SDK的方法
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Latitude and longitude are required", null)
+          }
+        }
+        "setMapStyle" -> {
+          val style = call.argument<Map<String, Any>>("style")
+          if (style != null) {
+            // 设置地图样式
+            // 这里应该调用美团地图SDK的方法
+            result.success(true)
+          } else {
+            result.error("INVALID_ARGUMENT", "Style is required", null)
           }
         }
         else -> {

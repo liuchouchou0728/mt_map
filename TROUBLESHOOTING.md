@@ -195,7 +195,86 @@ setState(() {
 });
 ```
 
-### 5. 内存泄漏
+### 5. 地图拖拽错误
+
+**问题**: 地图拖拽后出现错误或崩溃。
+
+**错误信息**:
+```
+PlatformException(showMap, showMap called on a disposed plugin, null)
+```
+
+**原因**: 拖拽过程中调用了已弃用的方法或原生方法未正确实现。
+
+**解决方案**:
+
+1. **使用正确的回调处理**:
+```dart
+MtMapWidget(
+  params: MtMapWidgetParams(
+    apiKey: 'your_api_key',
+    initialPosition: MtMapPosition(
+      latitude: 39.9042,
+      longitude: 116.4074,
+      zoom: 15.0,
+    ),
+  ),
+  callbacks: MtMapWidgetCallbacks(
+    onMapReady: () {
+      print('地图准备完成');
+    },
+    onMapError: (error) {
+      print('地图错误: $error');
+      // 处理错误，避免应用崩溃
+    },
+    onCameraMove: (latitude, longitude, zoom) {
+      print('相机移动: $latitude, $longitude, $zoom');
+      // 处理相机移动事件
+    },
+    onCameraIdle: () {
+      print('相机停止移动');
+      // 处理相机停止事件
+    },
+  ),
+)
+```
+
+2. **避免在拖拽过程中进行复杂操作**:
+```dart
+// ✅ 正确方式 - 延迟操作
+bool _isDragging = false;
+
+MtMapWidgetCallbacks(
+  onCameraMove: (latitude, longitude, zoom) {
+    _isDragging = true;
+    // 避免在拖拽过程中进行复杂操作
+  },
+  onCameraIdle: () {
+    _isDragging = false;
+    // 拖拽结束后进行操作
+    _performComplexOperation();
+  },
+)
+```
+
+3. **使用防抖处理**:
+```dart
+Timer? _debounceTimer;
+
+MtMapWidgetCallbacks(
+  onCameraMove: (latitude, longitude, zoom) {
+    // 取消之前的定时器
+    _debounceTimer?.cancel();
+    // 设置新的定时器
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      // 拖拽停止300ms后执行操作
+      _updateMapData(latitude, longitude, zoom);
+    });
+  },
+)
+```
+
+### 6. 内存泄漏
 
 **问题**: 应用内存使用量持续增长。
 
@@ -204,8 +283,11 @@ setState(() {
 1. **正确释放资源**:
 ```dart
 class _MapScreenState extends State<MapScreen> {
+  Timer? _debounceTimer;
+  
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     // 清理资源
     super.dispose();
   }

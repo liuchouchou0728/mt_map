@@ -127,41 +127,58 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   /// 设置方法通道
   void _setupMethodChannel() {
     _channel.setMethodCallHandler((call) async {
-      switch (call.method) {
-        case 'onMapClick':
-          final latitude = call.arguments['latitude'] as double;
-          final longitude = call.arguments['longitude'] as double;
-          widget.callbacks?.onMapClick?.call(latitude, longitude);
-          break;
-          
-        case 'onMarkerClick':
-          final markerId = call.arguments['markerId'] as int;
-          final marker = _markers.firstWhere((m) => m.id == markerId);
-          widget.callbacks?.onMarkerClick?.call(marker);
-          break;
-          
-        case 'onCameraMove':
-          final latitude = call.arguments['latitude'] as double;
-          final longitude = call.arguments['longitude'] as double;
-          final zoom = call.arguments['zoom'] as double;
-          setState(() {
-            _currentLatitude = latitude;
-            _currentLongitude = longitude;
-            _currentZoom = zoom;
-          });
-          widget.callbacks?.onCameraMove?.call(latitude, longitude, zoom);
-          break;
-          
-        case 'onCameraIdle':
-          widget.callbacks?.onCameraIdle?.call();
-          break;
-          
-        case 'onLocationUpdate':
-          final latitude = call.arguments['latitude'] as double;
-          final longitude = call.arguments['longitude'] as double;
-          final accuracy = call.arguments['accuracy'] as double;
-          widget.callbacks?.onLocationUpdate?.call(latitude, longitude, accuracy);
-          break;
+      try {
+        switch (call.method) {
+          case 'onMapClick':
+            final latitude = call.arguments['latitude'] as double?;
+            final longitude = call.arguments['longitude'] as double?;
+            if (latitude != null && longitude != null) {
+              widget.callbacks?.onMapClick?.call(latitude, longitude);
+            }
+            break;
+            
+          case 'onMarkerClick':
+            final markerId = call.arguments['markerId'] as int?;
+            if (markerId != null) {
+              try {
+                final marker = _markers.firstWhere((m) => m.id == markerId);
+                widget.callbacks?.onMarkerClick?.call(marker);
+              } catch (e) {
+                print('Marker not found: $markerId');
+              }
+            }
+            break;
+            
+          case 'onCameraMove':
+            final latitude = call.arguments['latitude'] as double?;
+            final longitude = call.arguments['longitude'] as double?;
+            final zoom = call.arguments['zoom'] as double?;
+            if (latitude != null && longitude != null && zoom != null) {
+              setState(() {
+                _currentLatitude = latitude;
+                _currentLongitude = longitude;
+                _currentZoom = zoom;
+              });
+              widget.callbacks?.onCameraMove?.call(latitude, longitude, zoom);
+            }
+            break;
+            
+          case 'onCameraIdle':
+            widget.callbacks?.onCameraIdle?.call();
+            break;
+            
+          case 'onLocationUpdate':
+            final latitude = call.arguments['latitude'] as double?;
+            final longitude = call.arguments['longitude'] as double?;
+            final accuracy = call.arguments['accuracy'] as double?;
+            if (latitude != null && longitude != null && accuracy != null) {
+              widget.callbacks?.onLocationUpdate?.call(latitude, longitude, accuracy);
+            }
+            break;
+        }
+      } catch (e) {
+        print('Method channel error: ${call.method} - $e');
+        // 不抛出异常，避免应用崩溃
       }
     });
   }
@@ -170,11 +187,12 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   Future<void> _showMap() async {
     if (!_isInitialized) return;
     
-    await MtMap.showMap(
-      latitude: _currentLatitude,
-      longitude: _currentLongitude,
-      zoom: _currentZoom,
-    );
+    // 使用原生方法设置地图中心，而不是调用已弃用的showMap
+    await _channel.invokeMethod('setMapCenter', {
+      'latitude': _currentLatitude,
+      'longitude': _currentLongitude,
+      'zoom': _currentZoom,
+    });
   }
 
   /// 添加标记
@@ -202,33 +220,43 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   Future<void> _addPolyline(MtMapPolyline polyline) async {
     if (!_isMapReady) return;
     
-    // 这里需要调用原生方法添加路线
-    await _channel.invokeMethod('addPolyline', {
-      'points': polyline.points.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
-      'color': polyline.color.value,
-      'width': polyline.width,
-    });
-    
-    setState(() {
-      _polylines.add(polyline);
-    });
+    try {
+      // 这里需要调用原生方法添加路线
+      await _channel.invokeMethod('addPolyline', {
+        'points': polyline.points.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
+        'color': polyline.color.value,
+        'width': polyline.width,
+      });
+      
+      setState(() {
+        _polylines.add(polyline);
+      });
+    } catch (e) {
+      print('Failed to add polyline: $e');
+      widget.callbacks?.onMapError?.call('Failed to add polyline: $e');
+    }
   }
 
   /// 添加多边形
   Future<void> _addPolygon(MtMapPolygon polygon) async {
     if (!_isMapReady) return;
     
-    // 这里需要调用原生方法添加多边形
-    await _channel.invokeMethod('addPolygon', {
-      'points': polygon.points.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
-      'fillColor': polygon.fillColor.value,
-      'strokeColor': polygon.strokeColor.value,
-      'strokeWidth': polygon.strokeWidth,
-    });
-    
-    setState(() {
-      _polygons.add(polygon);
-    });
+    try {
+      // 这里需要调用原生方法添加多边形
+      await _channel.invokeMethod('addPolygon', {
+        'points': polygon.points.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
+        'fillColor': polygon.fillColor.value,
+        'strokeColor': polygon.strokeColor.value,
+        'strokeWidth': polygon.strokeWidth,
+      });
+      
+      setState(() {
+        _polygons.add(polygon);
+      });
+    } catch (e) {
+      print('Failed to add polygon: $e');
+      widget.callbacks?.onMapError?.call('Failed to add polygon: $e');
+    }
   }
 
   /// 销毁地图

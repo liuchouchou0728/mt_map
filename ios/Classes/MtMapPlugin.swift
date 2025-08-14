@@ -527,9 +527,88 @@ class MtMapPlatformView: NSObject, FlutterPlatformView {
                 
                 if let latitude = latitude, let longitude = longitude {
                     // 设置地图中心
+                    // 这里应该调用美团地图SDK的方法
                     result(true)
                 } else {
                     result(FlutterError(code: "INVALID_ARGUMENT", message: "Latitude and longitude are required", details: nil))
+                }
+                
+            case "addPolyline":
+                let args = call.arguments as? [String: Any]
+                let points = args?["points"] as? [[String: Any]]
+                let color = args?["color"] as? Int
+                let width = args?["width"] as? Double
+                
+                if let points = points {
+                    // 添加路线
+                    // 这里应该调用美团地图SDK的方法
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Points are required", details: nil))
+                }
+                
+            case "removePolyline":
+                let args = call.arguments as? [String: Any]
+                let polylineId = args?["polylineId"] as? Int
+                
+                if let polylineId = polylineId {
+                    // 移除路线
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Polyline ID is required", details: nil))
+                }
+                
+            case "addPolygon":
+                let args = call.arguments as? [String: Any]
+                let points = args?["points"] as? [[String: Any]]
+                let fillColor = args?["fillColor"] as? Int
+                let strokeColor = args?["strokeColor"] as? Int
+                let strokeWidth = args?["strokeWidth"] as? Double
+                
+                if let points = points {
+                    // 添加多边形
+                    // 这里应该调用美团地图SDK的方法
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Points are required", details: nil))
+                }
+                
+            case "removePolygon":
+                let args = call.arguments as? [String: Any]
+                let polygonId = args?["polygonId"] as? Int
+                
+                if let polygonId = polygonId {
+                    // 移除多边形
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Polygon ID is required", details: nil))
+                }
+                
+            case "animateCamera":
+                let args = call.arguments as? [String: Any]
+                let latitude = args?["latitude"] as? Double
+                let longitude = args?["longitude"] as? Double
+                let zoom = args?["zoom"] as? Double
+                let duration = args?["duration"] as? Int ?? 1000
+                
+                if let latitude = latitude, let longitude = longitude {
+                    // 动画移动相机
+                    // 这里应该调用美团地图SDK的方法
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Latitude and longitude are required", details: nil))
+                }
+                
+            case "setMapStyle":
+                let args = call.arguments as? [String: Any]
+                let style = args?["style"] as? [String: Any]
+                
+                if let style = style {
+                    // 设置地图样式
+                    // 这里应该调用美团地图SDK的方法
+                    result(true)
+                } else {
+                    result(FlutterError(code: "INVALID_ARGUMENT", message: "Style is required", details: nil))
                 }
                 
             default:
