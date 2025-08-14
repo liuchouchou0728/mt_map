@@ -116,7 +116,76 @@ MtMapWidget(
    - Android: 确保在 `android/app/src/main/AndroidManifest.xml` 中添加了必要的权限
    - iOS: 确保在 `ios/Runner/Info.plist` 中添加了位置权限描述
 
-### 3. 地图不显示
+### 3. 方法通道错误
+
+**错误信息**:
+```
+MissingPluginException(No implementation found for method setMapCenter on channel mt_map_widget)
+```
+
+**原因**: PlatformView 还没有完全创建完成就调用了方法。
+
+**解决方案**:
+
+1. **等待 PlatformView 创建完成**:
+```dart
+MtMapWidget(
+  params: MtMapWidgetParams(
+    apiKey: 'your_api_key',
+    initialPosition: MtMapPosition(
+      latitude: 39.9042,
+      longitude: 116.4074,
+      zoom: 15.0,
+    ),
+  ),
+  callbacks: MtMapWidgetCallbacks(
+    onMapReady: () {
+      print('地图准备完成，现在可以安全调用方法');
+      // 在这里调用地图操作方法
+    },
+    onMapError: (error) {
+      print('地图错误: $error');
+    },
+  ),
+)
+```
+
+2. **使用延迟初始化**:
+```dart
+class _MapScreenState extends State<MapScreen> {
+  bool _isMapReady = false;
+  
+  @override
+  Widget build(BuildContext context) {
+    return MtMapWidget(
+      params: MtMapWidgetParams(
+        apiKey: 'your_api_key',
+      ),
+      callbacks: MtMapWidgetCallbacks(
+        onMapReady: () {
+          setState(() {
+            _isMapReady = true;
+          });
+        },
+      ),
+    );
+  }
+  
+  void _performMapOperation() {
+    if (_isMapReady) {
+      // 只有在地图准备完成后才执行操作
+      // 这样可以避免 MissingPluginException
+    }
+  }
+}
+```
+
+3. **检查方法通道名称**:
+   - 确保原生端和 Flutter 端使用相同的方法通道名称
+   - Android: `mt_map_widget_$viewId`
+   - iOS: `mt_map_widget_$viewId`
+
+### 4. 地图不显示
 
 **可能原因**:
 - API 密钥无效
@@ -195,7 +264,7 @@ setState(() {
 });
 ```
 
-### 5. 地图拖拽错误
+### 6. 地图拖拽错误
 
 **问题**: 地图拖拽后出现错误或崩溃。
 
@@ -274,7 +343,7 @@ MtMapWidgetCallbacks(
 )
 ```
 
-### 6. 内存泄漏
+### 7. 内存泄漏
 
 **问题**: 应用内存使用量持续增长。
 

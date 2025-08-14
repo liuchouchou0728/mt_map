@@ -33,6 +33,7 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   bool _isInitialized = false;
   bool _isMapReady = false;
   String? _errorMessage;
+  int? _platformViewId;
   
   // 地图状态
   double _currentLatitude = 39.9042;
@@ -53,6 +54,38 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   void dispose() {
     _disposeMap();
     super.dispose();
+  }
+
+  /// 获取PlatformView的方法通道
+  MethodChannel? get _platformViewChannel {
+    if (_platformViewId == null) return null;
+    return MethodChannel('mt_map_widget_$_platformViewId');
+  }
+
+  /// 添加初始地图元素
+  Future<void> _addInitialMapElements() async {
+    if (!_isMapReady || _platformViewChannel == null) return;
+    
+    // 添加初始标记
+    if (widget.params.initialMarkers.isNotEmpty) {
+      for (final marker in widget.params.initialMarkers) {
+        await _addMarker(marker);
+      }
+    }
+    
+    // 添加初始路线
+    if (widget.params.initialPolylines.isNotEmpty) {
+      for (final polyline in widget.params.initialPolylines) {
+        await _addPolyline(polyline);
+      }
+    }
+    
+    // 添加初始多边形
+    if (widget.params.initialPolygons.isNotEmpty) {
+      for (final polygon in widget.params.initialPolygons) {
+        await _addPolygon(polygon);
+      }
+    }
   }
 
   /// 初始化地图
@@ -84,32 +117,12 @@ class _MtMapWidgetState extends State<MtMapWidget> {
         // 显示地图
         await _showMap();
         
-        // 添加初始标记
-        if (widget.params.initialMarkers.isNotEmpty) {
-          for (final marker in widget.params.initialMarkers) {
-            await _addMarker(marker);
-          }
-        }
-        
-        // 添加初始路线
-        if (widget.params.initialPolylines.isNotEmpty) {
-          for (final polyline in widget.params.initialPolylines) {
-            await _addPolyline(polyline);
-          }
-        }
-        
-        // 添加初始多边形
-        if (widget.params.initialPolygons.isNotEmpty) {
-          for (final polygon in widget.params.initialPolygons) {
-            await _addPolygon(polygon);
-          }
-        }
-        
         setState(() {
-          _isMapReady = true;
+          _isInitialized = true;
         });
         
-        widget.callbacks?.onMapReady?.call();
+        // 注意：初始标记、路线和多边形将在PlatformView创建完成后添加
+        // 这样可以避免MissingPluginException错误
       } else {
         setState(() {
           _errorMessage = 'Failed to initialize map';
@@ -187,42 +200,44 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   Future<void> _showMap() async {
     if (!_isInitialized) return;
     
-    // 使用原生方法设置地图中心，而不是调用已弃用的showMap
-    await _channel.invokeMethod('setMapCenter', {
-      'latitude': _currentLatitude,
-      'longitude': _currentLongitude,
-      'zoom': _currentZoom,
-    });
+    // 地图显示由PlatformView自动处理，这里只需要等待初始化完成
+    // 不需要调用setMapCenter，因为初始位置已经在creationParams中设置
+    // 等待PlatformView创建完成
+    await Future.delayed(const Duration(milliseconds: 100));
   }
 
   /// 添加标记
   Future<void> _addMarker(MtMapMarker marker) async {
-    if (!_isMapReady) return;
+    if (!_isMapReady || _platformViewChannel == null) return;
     
-    final success = await MtMap.addMarker(
-      latitude: marker.latitude,
-      longitude: marker.longitude,
-      title: marker.title,
-      snippet: marker.snippet,
-      iconPath: marker.iconPath,
-    );
-    
-    if (success) {
-      // 生成一个简单的ID
-      final markerId = _markers.length + 1;
-      setState(() {
-        _markers.add(marker.copyWith(id: markerId));
+    try {
+      // 使用PlatformView的方法通道添加标记
+      final markerId = await _platformViewChannel!.invokeMethod('addMarker', {
+        'latitude': marker.latitude,
+        'longitude': marker.longitude,
+        'title': marker.title,
+        'snippet': marker.snippet,
+        'iconPath': marker.iconPath,
       });
+      
+      if (markerId != null) {
+        setState(() {
+          _markers.add(marker.copyWith(id: markerId as int));
+        });
+      }
+    } catch (e) {
+      print('Failed to add marker: $e');
+      widget.callbacks?.onMapError?.call('Failed to add marker: $e');
     }
   }
 
   /// 添加路线
   Future<void> _addPolyline(MtMapPolyline polyline) async {
-    if (!_isMapReady) return;
+    if (!_isMapReady || _platformViewChannel == null) return;
     
     try {
-      // 这里需要调用原生方法添加路线
-      await _channel.invokeMethod('addPolyline', {
+      // 使用PlatformView的方法通道添加路线
+      await _platformViewChannel!.invokeMethod('addPolyline', {
         'points': polyline.points.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
         'color': polyline.color.value,
         'width': polyline.width,
@@ -239,11 +254,11 @@ class _MtMapWidgetState extends State<MtMapWidget> {
 
   /// 添加多边形
   Future<void> _addPolygon(MtMapPolygon polygon) async {
-    if (!_isMapReady) return;
+    if (!_isMapReady || _platformViewChannel == null) return;
     
     try {
-      // 这里需要调用原生方法添加多边形
-      await _channel.invokeMethod('addPolygon', {
+      // 使用PlatformView的方法通道添加多边形
+      await _platformViewChannel!.invokeMethod('addPolygon', {
         'points': polygon.points.map((p) => {'latitude': p.latitude, 'longitude': p.longitude}).toList(),
         'fillColor': polygon.fillColor.value,
         'strokeColor': polygon.strokeColor.value,
@@ -319,8 +334,16 @@ class _MtMapWidgetState extends State<MtMapWidget> {
               // 地图视图创建完成
               setState(() {
                 _isMapReady = true;
+                _platformViewId = id;
               });
               widget.callbacks?.onMapReady?.call();
+              
+              // 延迟添加初始地图元素，确保PlatformView完全初始化
+              Future.delayed(const Duration(milliseconds: 200), () {
+                if (mounted) {
+                  _addInitialMapElements();
+                }
+              });
             },
             creationParams: {
               'apiKey': widget.params.apiKey,
