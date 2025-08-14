@@ -34,6 +34,9 @@ class _MtMapWidgetState extends State<MtMapWidget> {
   bool _isMapReady = false;
   String? _errorMessage;
   int? _platformViewId;
+  bool _isRetrying = false;
+  int _retryCount = 0;
+  static const int _maxRetries = 3;
   
   // 地图状态
   double _currentLatitude = 39.9042;
@@ -100,6 +103,16 @@ class _MtMapWidgetState extends State<MtMapWidget> {
         return;
       }
 
+      // 检查网络连接
+      final hasNetwork = await _checkNetworkConnection();
+      if (!hasNetwork) {
+        setState(() {
+          _errorMessage = '网络连接不可用，请检查网络设置';
+        });
+        widget.callbacks?.onMapError?.call('网络连接不可用，请检查网络设置');
+        return;
+      }
+
       // 初始化美团地图SDK
       final success = await MtMap.initialize(widget.params.apiKey);
       if (success) {
@@ -117,23 +130,20 @@ class _MtMapWidgetState extends State<MtMapWidget> {
         // 显示地图
         await _showMap();
         
-        setState(() {
-          _isInitialized = true;
-        });
-        
         // 注意：初始标记、路线和多边形将在PlatformView创建完成后添加
         // 这样可以避免MissingPluginException错误
       } else {
         setState(() {
-          _errorMessage = 'Failed to initialize map';
+          _errorMessage = '地图初始化失败，请检查API密钥和网络连接';
         });
-        widget.callbacks?.onMapError?.call('Failed to initialize map');
+        widget.callbacks?.onMapError?.call('地图初始化失败，请检查API密钥和网络连接');
       }
     } catch (e) {
+      print('地图初始化错误: $e');
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = '地图初始化错误: $e';
       });
-      widget.callbacks?.onMapError?.call(e.toString());
+      widget.callbacks?.onMapError?.call('地图初始化错误: $e');
     }
   }
 
@@ -274,6 +284,42 @@ class _MtMapWidgetState extends State<MtMapWidget> {
     }
   }
 
+  /// 重试初始化
+  Future<void> _retryInitialization() async {
+    if (_isRetrying || _retryCount >= _maxRetries) return;
+    
+    setState(() {
+      _isRetrying = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      _retryCount++;
+      await _initializeMap();
+    } catch (e) {
+      print('重试初始化失败: $e');
+      setState(() {
+        _errorMessage = '重试失败: $e';
+      });
+    } finally {
+      setState(() {
+        _isRetrying = false;
+      });
+    }
+  }
+
+  /// 检查网络连接状态
+  Future<bool> _checkNetworkConnection() async {
+    try {
+      // 这里可以添加实际的网络连接检查逻辑
+      // 例如使用 connectivity_plus 包
+      return true; // 暂时返回true
+    } catch (e) {
+      print('网络连接检查失败: $e');
+      return false;
+    }
+  }
+
   /// 销毁地图
   Future<void> _disposeMap() async {
     await MtMap.hideMap();
@@ -300,6 +346,20 @@ class _MtMapWidgetState extends State<MtMapWidget> {
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 16),
+              if (_retryCount < _maxRetries) ...[
+                ElevatedButton(
+                  onPressed: _isRetrying ? null : _retryInitialization,
+                  child: _isRetrying 
+                    ? const CircularProgressIndicator(strokeWidth: 2)
+                    : const Text('重试'),
+                ),
+              ] else ...[
+                Text(
+                  '已达到最大重试次数',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
             ],
           ),
         ),
@@ -323,39 +383,37 @@ class _MtMapWidgetState extends State<MtMapWidget> {
     }
 
     // 使用PlatformView显示原生地图
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SizedBox(
-          width: constraints.maxWidth,
-          height: constraints.maxHeight,
-          child: AndroidView(
-            viewType: 'mt_map_view',
-            onPlatformViewCreated: (int id) {
-              // 地图视图创建完成
-              setState(() {
-                _isMapReady = true;
-                _platformViewId = id;
-              });
-              widget.callbacks?.onMapReady?.call();
-              
-              // 延迟添加初始地图元素，确保PlatformView完全初始化
-              Future.delayed(const Duration(milliseconds: 200), () {
-                if (mounted) {
-                  _addInitialMapElements();
-                }
-              });
-            },
-            creationParams: {
-              'apiKey': widget.params.apiKey,
-              'latitude': _currentLatitude,
-              'longitude': _currentLongitude,
-              'zoom': _currentZoom,
-              'style': widget.style?.toMap(),
-            },
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
-        );
-      },
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      child: AndroidView(
+        viewType: 'mt_map_view',
+        onPlatformViewCreated: (int id) {
+          // 地图视图创建完成
+          if (mounted) {
+            setState(() {
+              _isMapReady = true;
+              _platformViewId = id;
+            });
+            widget.callbacks?.onMapReady?.call();
+            
+            // 延迟添加初始地图元素，确保PlatformView完全初始化
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (mounted) {
+                _addInitialMapElements();
+              }
+            });
+          }
+        },
+        creationParams: {
+          'apiKey': widget.params.apiKey,
+          'latitude': _currentLatitude,
+          'longitude': _currentLongitude,
+          'zoom': _currentZoom,
+          'style': widget.style?.toMap(),
+        },
+        creationParamsCodec: const StandardMessageCodec(),
+      ),
     );
   }
 }

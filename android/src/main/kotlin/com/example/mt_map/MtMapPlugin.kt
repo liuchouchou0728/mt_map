@@ -600,38 +600,53 @@ class MtMapPlatformView(
   }
   
   private fun setupMapView() {
-    // 设置地图视图
-    mapView.layoutParams = ViewGroup.LayoutParams(
-      ViewGroup.LayoutParams.MATCH_PARENT,
-      ViewGroup.LayoutParams.MATCH_PARENT
-    )
-    
-    // 从创建参数中获取初始配置
-    creationParams?.let { params ->
-      val apiKey = params["apiKey"] as String?
-      val latitude = params["latitude"] as Double?
-      val longitude = params["longitude"] as Double?
-      val zoom = params["zoom"] as Double?
-      val style = params["style"] as Map<String, Any>?
+    try {
+      // 设置地图视图
+      mapView.layoutParams = ViewGroup.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.MATCH_PARENT
+      )
       
-      // 初始化地图
-      if (apiKey != null) {
-        // 这里应该初始化美团地图SDK
-        // MTMapSDK.init(context, apiKey)
+      // 设置背景色，避免透明问题
+      mapView.setBackgroundColor(android.graphics.Color.WHITE)
+      
+      // 从创建参数中获取初始配置
+      creationParams?.let { params ->
+        val apiKey = params["apiKey"] as String?
+        val latitude = params["latitude"] as Double?
+        val longitude = params["longitude"] as Double?
+        val zoom = params["zoom"] as Double?
+        val style = params["style"] as Map<String, Any>?
+        
+        println("MtMapPlatformView: setupMapView with params: apiKey=${apiKey != null}, lat=$latitude, lng=$longitude, zoom=$zoom")
+        
+        // 初始化地图
+        if (apiKey != null) {
+          // 这里应该初始化美团地图SDK
+          // MTMapSDK.init(context, apiKey)
+          println("MtMapPlatformView: API key provided")
+        }
+        
+        // 设置初始位置
+        if (latitude != null && longitude != null) {
+          // 这里应该设置地图中心点
+          // mapView.setMapCenter(MTMapPointGeo(latitude, longitude))
+          // zoom?.let { mapView.setZoomLevel(it.toInt()) }
+          println("MtMapPlatformView: Initial position set to ($latitude, $longitude)")
+        }
+        
+        // 设置地图样式
+        style?.let { styleMap ->
+          // 这里应该设置地图样式
+          // mapView.setMapStyle(styleMap)
+          println("MtMapPlatformView: Style configuration provided")
+        }
       }
       
-      // 设置初始位置
-      if (latitude != null && longitude != null) {
-        // 这里应该设置地图中心点
-        // mapView.setMapCenter(MTMapPointGeo(latitude, longitude))
-        // zoom?.let { mapView.setZoomLevel(it.toInt()) }
-      }
-      
-      // 设置地图样式
-      style?.let { styleMap ->
-        // 这里应该设置地图样式
-        // mapView.setMapStyle(styleMap)
-      }
+      println("MtMapPlatformView: setupMapView completed successfully")
+    } catch (e: Exception) {
+      println("MtMapPlatformView: setupMapView error: ${e.message}")
+      e.printStackTrace()
     }
   }
   
@@ -761,7 +776,18 @@ class MtMapPlatformView(
   }
   
   override fun setSize(width: Int, height: Int) {
-    // 设置PlatformView的尺寸
-    mapView.layoutParams = ViewGroup.LayoutParams(width, height)
+    try {
+      // 设置PlatformView的尺寸
+      if (width > 0 && height > 0) {
+        mapView.layoutParams = ViewGroup.LayoutParams(width, height)
+        // 强制重新布局
+        mapView.requestLayout()
+        println("MtMapPlatformView: setSize called with width=$width, height=$height")
+      } else {
+        println("MtMapPlatformView: setSize called with invalid dimensions: width=$width, height=$height")
+      }
+    } catch (e: Exception) {
+      println("MtMapPlatformView: setSize error: ${e.message}")
+    }
   }
 }

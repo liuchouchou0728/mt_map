@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mt_map/mt_map.dart';
 import 'map_example.dart';
 import 'simple_example.dart';
+import 'advanced_map_example.dart';
 
 void main() {
   runApp(const MyApp());
@@ -109,7 +110,23 @@ class _MyAppState extends State<MyApp> {
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('完整功能示例'),
+                    child: const Text('基础功能示例'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdvancedMapExample(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('高级功能示例'),
                   ),
                   const SizedBox(height: 8),
 

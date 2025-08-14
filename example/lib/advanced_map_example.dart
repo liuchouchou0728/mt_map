@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mt_map/mt_map.dart';
 
-/// 美团地图使用示例
-class MapExample extends StatefulWidget {
-  const MapExample({super.key});
+/// 高级美团地图使用示例
+/// 使用PlatformView方法通道动态管理地图元素
+class AdvancedMapExample extends StatefulWidget {
+  const AdvancedMapExample({super.key});
 
   @override
-  State<MapExample> createState() => _MapExampleState();
+  State<AdvancedMapExample> createState() => _AdvancedMapExampleState();
 }
 
-class _MapExampleState extends State<MapExample> {
+class _AdvancedMapExampleState extends State<AdvancedMapExample> {
   List<MtMapMarker> _markers = [];
   List<MtMapPolyline> _polylines = [];
   List<MtMapPolygon> _polygons = [];
+  bool _isMapReady = false;
+  int? _platformViewId;
+  MethodChannel? _platformViewChannel;
 
   @override
   void initState() {
     super.initState();
-    // 地图容器会自动处理初始化，无需手动初始化
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('美团地图示例'),
-        backgroundColor: Colors.orange,
+        title: const Text('高级地图示例'),
+        backgroundColor: Colors.purple,
       ),
       body: Column(
         children: [
@@ -62,6 +66,9 @@ class _MapExampleState extends State<MapExample> {
       callbacks: MtMapWidgetCallbacks(
         onMapReady: () {
           print('地图准备完成');
+          setState(() {
+            _isMapReady = true;
+          });
         },
         onMapError: (error) {
           print('地图错误: $error');
@@ -71,7 +78,9 @@ class _MapExampleState extends State<MapExample> {
         },
         onMapClick: (latitude, longitude) {
           print('地图点击: $latitude, $longitude');
-          _addMarker(latitude, longitude);
+          if (_isMapReady) {
+            _addMarkerDynamically(latitude, longitude);
+          }
         },
         onMarkerClick: (marker) {
           print('标记点击: ${marker.title}');
@@ -102,15 +111,15 @@ class _MapExampleState extends State<MapExample> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                onPressed: _addRandomMarker,
+                onPressed: _isMapReady ? _addRandomMarker : null,
                 child: const Text('添加标记'),
               ),
               ElevatedButton(
-                onPressed: _addPolyline,
+                onPressed: _isMapReady ? _addPolyline : null,
                 child: const Text('添加路线'),
               ),
               ElevatedButton(
-                onPressed: _addPolygon,
+                onPressed: _isMapReady ? _addPolygon : null,
                 child: const Text('添加多边形'),
               ),
             ],
@@ -122,7 +131,7 @@ class _MapExampleState extends State<MapExample> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                onPressed: _clearAll,
+                onPressed: _isMapReady ? _clearAll : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
@@ -130,11 +139,11 @@ class _MapExampleState extends State<MapExample> {
                 child: const Text('清除所有'),
               ),
               ElevatedButton(
-                onPressed: _getCurrentLocation,
+                onPressed: _isMapReady ? _getCurrentLocation : null,
                 child: const Text('获取位置'),
               ),
               ElevatedButton(
-                onPressed: _searchNearby,
+                onPressed: _isMapReady ? _searchNearby : null,
                 child: const Text('搜索附近'),
               ),
             ],
@@ -151,6 +160,7 @@ class _MapExampleState extends State<MapExample> {
             ),
             child: Column(
               children: [
+                Text('地图状态: ${_isMapReady ? '就绪' : '加载中...'}'),
                 Text('标记点数量: ${_markers.length}'),
                 Text('路线数量: ${_polylines.length}'),
                 Text('多边形数量: ${_polygons.length}'),
@@ -162,35 +172,57 @@ class _MapExampleState extends State<MapExample> {
     );
   }
 
-  void _addMarker(double latitude, double longitude) {
-    final marker = MtMapMarker(
-      latitude: latitude,
-      longitude: longitude,
-      title: '标记 ${_markers.length + 1}',
-      snippet: '点击添加的标记',
-    );
+  /// 动态添加标记（通过PlatformView方法通道）
+  Future<void> _addMarkerDynamically(double latitude, double longitude) async {
+    if (!_isMapReady || _platformViewChannel == null) return;
     
-    setState(() {
-      _markers.add(marker);
-    });
-    
-    // 注意：标记会通过initialMarkers自动添加到地图上
-    // 如果需要动态添加，需要重新构建地图组件
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('添加标记: ${marker.title}')),
-    );
+    try {
+      final marker = MtMapMarker(
+        id: _markers.length + 1,
+        latitude: latitude,
+        longitude: longitude,
+        title: '动态标记 ${_markers.length + 1}',
+        snippet: '通过方法通道添加的标记',
+      );
+      
+      // 通过PlatformView方法通道添加标记
+      final markerId = await _platformViewChannel!.invokeMethod('addMarker', {
+        'latitude': marker.latitude,
+        'longitude': marker.longitude,
+        'title': marker.title,
+        'snippet': marker.snippet,
+      });
+      
+      if (markerId != null) {
+        setState(() {
+          _markers.add(marker.copyWith(id: markerId as int));
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('动态添加标记: ${marker.title}')),
+        );
+      }
+    } catch (e) {
+      print('动态添加标记失败: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('添加标记失败: $e')),
+      );
+    }
   }
 
   void _addRandomMarker() {
+    if (!_isMapReady) return;
+    
     final random = DateTime.now().millisecondsSinceEpoch;
     final latitude = 39.9042 + (random % 1000 - 500) / 10000.0;
     final longitude = 116.4074 + (random % 1000 - 500) / 10000.0;
     
-    _addMarker(latitude, longitude);
+    _addMarkerDynamically(latitude, longitude);
   }
 
   void _addPolyline() {
+    if (!_isMapReady) return;
+    
     final polyline = MtMapPolyline(
       points: [
         const MtMapPosition(latitude: 39.9042, longitude: 116.4074),
@@ -211,6 +243,8 @@ class _MapExampleState extends State<MapExample> {
   }
 
   void _addPolygon() {
+    if (!_isMapReady) return;
+    
     final polygon = MtMapPolygon(
       points: [
         const MtMapPosition(latitude: 39.9042, longitude: 116.4074),
@@ -233,6 +267,8 @@ class _MapExampleState extends State<MapExample> {
   }
 
   void _clearAll() {
+    if (!_isMapReady) return;
+    
     setState(() {
       _markers.clear();
       _polylines.clear();
@@ -245,6 +281,8 @@ class _MapExampleState extends State<MapExample> {
   }
 
   Future<void> _getCurrentLocation() async {
+    if (!_isMapReady) return;
+    
     try {
       final location = await MtMap.getCurrentLocation();
       if (location != null) {
@@ -270,6 +308,8 @@ class _MapExampleState extends State<MapExample> {
   }
 
   Future<void> _searchNearby() async {
+    if (!_isMapReady) return;
+    
     try {
       final places = await MtMap.searchNearby(
         latitude: 39.9042,
